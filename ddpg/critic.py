@@ -2,7 +2,7 @@ import keras.backend as K
 from keras import optimizers
 
 
-class Critic:
+class Critic(object):
 
     def __init__(self, model, lr=1e-3, decay=1e-2):
         self.model = model

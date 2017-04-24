@@ -1,7 +1,7 @@
 import env
 import gym
 import keras.backend as K
-from keras.layers import Input, Dense, concatenate, BatchNormalization
+from keras.layers import Input, Dense, concatenate
 from keras.models import Model
 from keras import optimizers
 
@@ -15,7 +15,6 @@ def create_actor(n_states, n_actions):
     state_input = Input(shape=(n_states,))
 
     h = Dense(16, activation='relu')(state_input)
-    # h = BatchNormalization()(h)
     h = Dense(16, activation='relu')(h)
     h = Dense(16, activation='relu')(h)
     out = Dense(n_actions,  activation='linear')(h)
@@ -48,8 +47,8 @@ if __name__ == '__main__':
 
     action_limits = [env.action_space.low, env.action_space.high]
 
-    agent = ddpg_agent.DDPGAgent(actor, tgt_actor, critic, tgt_critic,
-                                 action_limits, rb_size=1e5, tau=1e-3)
+    agent = ddpg_agent.DDPGAgent(actor, tgt_actor, critic, tgt_critic, action_limits,
+                                 actor_lr=1e-3, critic_decay=0, rb_size=1e5, tau=1e-3)
     agent.train(env, n_episodes, n_steps, render_period)
 
     print "Saving weights..."

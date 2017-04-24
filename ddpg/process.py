@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class OrnsteinUhlenbeck:
+class OrnsteinUhlenbeck(object):
 
     def __init__(self, x0, theta, mu, sigma, dt=1e-2):
         self.x0 = x0

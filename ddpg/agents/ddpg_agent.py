@@ -10,16 +10,16 @@ import numpy as np
 class DDPGAgent(Agent):
 
     def __init__(self, actor_model, tgt_actor_model, critic_model, tgt_critic_model, action_limits,
-                 process=None, rb_size=1e6, minibatch_size=64, tau=1e-3, gamma=0.99,
-                 warmup_steps=1000):
+                 actor_lr=1e-4, critic_lr=1e-3, critic_decay=1e-2, process=None, rb_size=1e6,
+                 minibatch_size=64, tau=1e-3, gamma=0.99, warmup_steps=1000):
         super(DDPGAgent, self).__init__(warmup_steps)
 
-        self.actor = Actor(actor_model, critic_model)
-        self.tgt_actor = Actor(tgt_actor_model, tgt_critic_model)
+        self.actor = Actor(actor_model, critic_model, lr=actor_lr)
+        self.tgt_actor = Actor(tgt_actor_model, tgt_critic_model, lr=actor_lr)
         self.tgt_actor.set_weights(self.actor.get_weights())
 
-        self.critic = Critic(critic_model)
-        self.tgt_critic = Critic(tgt_critic_model)
+        self.critic = Critic(critic_model, lr=critic_lr, decay=critic_decay)
+        self.tgt_critic = Critic(tgt_critic_model, lr=critic_lr, decay=critic_decay)
         self.tgt_critic.set_weights(self.critic.get_weights())
 
         self.action_limits = action_limits
@@ -85,6 +85,3 @@ class DDPGAgent(Agent):
 
     def new_episode(self):
         self.process.clear()
-
-    # def train(self, env, n_episodes, n_steps, render_period=None):
-    #     super(DDPGAgent, self).train(env, n_episodes, n_steps, render_period=None)

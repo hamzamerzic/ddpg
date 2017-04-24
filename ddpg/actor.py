@@ -2,7 +2,7 @@ import keras.backend as K
 from keras import optimizers
 
 
-class Actor:
+class Actor(object):
 
     def __init__(self, model, critic_model, lr=1e-4):
         self.model = model

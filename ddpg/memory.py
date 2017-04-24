@@ -2,7 +2,7 @@ from collections import deque
 import random
 
 
-class ReplayBuffer:
+class ReplayBuffer(object):
 
     def __init__(self, maxlen):
         self.maxlen = maxlen
