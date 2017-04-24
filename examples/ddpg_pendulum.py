@@ -40,7 +40,7 @@ if __name__ == '__main__':
     n_actions = env.action_space.shape[0]
     n_states = env.observation_space.shape[0]
     n_episodes = 10000
-    n_steps = 100
+    n_steps = 200
     render_period = 200
 
     actor, tgt_actor = create_actor(n_states, n_actions), create_actor(n_states, n_actions)
@@ -52,5 +52,7 @@ if __name__ == '__main__':
                                  action_limits, rb_size=1e5, tau=1e-3)
     agent.train(env, n_episodes, n_steps, render_period)
 
+    print "Saving weights..."
     actor.save_weights("actor.model", overwrite=True)
     critic.save_weights("critic.model", overwrite=True)
+    print "Done."
