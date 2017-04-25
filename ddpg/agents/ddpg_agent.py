@@ -1,10 +1,11 @@
+import keras.backend as K
+import numpy as np
+
 from agent import Agent
 from ddpg.actor import Actor
 from ddpg.critic import Critic
 from ddpg.memory import ReplayBuffer
 from ddpg.process import OrnsteinUhlenbeck
-
-import numpy as np
 
 
 class DDPGAgent(Agent):
@@ -29,8 +30,8 @@ class DDPGAgent(Agent):
         self.tau = tau
         self.gamma = gamma
 
-        self.state_space = int(critic_model.inputs[0].shape[1:][0])
-        self.action_space = int(critic_model.inputs[1].shape[1:][0])
+        self.state_space = K.int_shape(critic_model.inputs[0])[1]
+        self.action_space = K.int_shape(critic_model.inputs[1])[1]
         if process is None:
             self.process = OrnsteinUhlenbeck(x0=np.zeros(self.action_space), theta=0.15, mu=0,
                                              sigma=0.2)

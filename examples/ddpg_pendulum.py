@@ -40,7 +40,7 @@ if __name__ == '__main__':
     n_states = env.observation_space.shape[0]
     n_episodes = 10000
     n_steps = 200
-    render_period = 200
+    render_period = 50
 
     actor, tgt_actor = create_actor(n_states, n_actions), create_actor(n_states, n_actions)
     critic, tgt_critic = create_critic(n_states, n_actions), create_critic(n_states, n_actions)

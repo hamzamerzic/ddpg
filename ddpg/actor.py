@@ -14,7 +14,7 @@ class Actor(object):
 
         updates = self.opt.get_updates(
             params=self.model.trainable_weights, constraints=self.model.constraints,
-            loss=[-critic_out])
+            loss=-K.mean(critic_out))
         updates += self.model.updates
         # learning_phase added in case of batchnorm layers.
         self.train_step = K.function(
