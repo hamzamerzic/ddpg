@@ -8,12 +8,15 @@ except:
 
 class Agent(object):
 
-    def __init__(self, warmup_episodes, logging=True):
+    def __init__(self, warmup_episodes, logging):
         self.learning_phase = True
         self.warmup_episodes = warmup_episodes if warmup_episodes is not None else 0
         self.logging = logging
         if logging:
             self.logs = []
+            print "Logging enabled!"
+        else:
+            print "Logging disabled!"
 
     def sense(self, s, a, r, s_new):
         raise NotImplementedError()
@@ -80,18 +83,21 @@ class Agent(object):
         learning_phase = self.learning_phase
         self.learning_phase = False
 
-        for episode in range(n_episodes):
-            print "Ep %4d" % (episode)
-            done = False
-            s = env.reset()
+        try:
+            for episode in range(n_episodes):
+                print "Ep %4d" % (episode)
+                done = False
+                s = env.reset()
 
-            for _ in range(n_steps):
-                if render:
-                    env.render()
-                a = self.act(s)
-                s_new, _, _, done = env.step(a)
-                s = s_new
-                if done:
-                    break
+                for _ in range(n_steps):
+                    if render:
+                        env.render()
+                    a = self.act(s)
+                    s_new, _, _, done = env.step(a)
+                    s = s_new
+                    if done:
+                        break
+        except KeyboardInterrupt:
+            print "Evaluation interrupted by the user!"
 
         self.learning_phase = learning_phase
