@@ -24,7 +24,7 @@ def create_actor(n_states, n_actions):
     w_init = RandomUniform(-3e-3, 3e-3)
     out = Dense(n_actions, kernel_initializer=w_init,
                 bias_initializer=w_init, activation='tanh')(h2)
-    out = Lambda(lambda x: 2 * x)(out)  # Since the output range is -2 to 2.
+    out = Lambda(lambda x: 2 * x, output_shape=(1,))(out)  # Since the output range is -2 to 2.
 
     return Model(inputs=[state_input], outputs=[out])
 
