@@ -12,8 +12,8 @@ class DDPGAgent(Agent):
 
     def __init__(self, actor_model, tgt_actor_model, critic_model, tgt_critic_model, action_limits,
                  actor_lr=1e-4, critic_lr=1e-3, critic_decay=1e-2, process=None, rb_size=1e6,
-                 minibatch_size=64, tau=1e-3, gamma=0.99, warmup_steps=1000):
-        super(DDPGAgent, self).__init__(warmup_steps)
+                 minibatch_size=64, tau=1e-3, gamma=0.99, warmup_episodes=None, logging=True):
+        super(DDPGAgent, self).__init__(warmup_episodes, logging)
 
         self.actor = Actor(actor_model, critic_model, lr=actor_lr)
         self.tgt_actor = Actor(tgt_actor_model, tgt_critic_model, lr=actor_lr)
@@ -45,17 +45,18 @@ class DDPGAgent(Agent):
 
     def act(self, s):
         s = np.reshape(s, [-1, self.state_space])
+        a = self.tgt_actor(s)
+        # Cache.
+        self.last_state = np.copy(s)
+        self.last_action = np.copy(a)
         if self.learning_phase:
-            action = self.tgt_actor(s) + self.process()
-        else:
-            action = self.tgt_actor(s)
-        return np.clip(action, self.action_limits[0], self.action_limits[1])
+            a += self.process()
+        a = np.clip(a, self.action_limits[0], self.action_limits[1])
+
+        self.last_action_noisy = np.copy(a)
+        return a
 
     def train_step(self):
-        self.step += 1
-        if self.step == self.warmup_steps:
-            print "Finished warming up."
-
         minibatch = self.buffer.sample(self.minibatch_size)
         states = np.zeros([len(minibatch), self.state_space])
         states_new = np.zeros([len(minibatch), self.state_space])
@@ -65,10 +66,22 @@ class DDPGAgent(Agent):
         for i in range(len(minibatch)):
             states[i], actions[i], r[i], states_new[i] = minibatch[i]
 
-        ys = r + self.gamma * self.tgt_critic(states_new, self.tgt_actor(states_new))
+        critic_out = self.critic(states_new, self.actor(states_new))
+        tgt_critic_out = self.tgt_critic(states_new, self.tgt_actor(states_new))
+        if self.logging:
+            log = [('s', self.last_state),
+                   ('a', self.last_action),
+                   ('a_noisy', self.last_action_noisy),
+                   ('q', self.critic(self.last_state, self.last_action)),
+                   ('q_tgt', self.tgt_critic(self.last_state, self.last_action)),
+                   (('mse', np.mean(np.square(critic_out - tgt_critic_out))))]
+            self.add_log(log)
+
+        ys = r + self.gamma * tgt_critic_out
         self.critic.step(states, actions, ys)
         self.actor.step(states)
 
+        # Soft weight update.
         critic_weights = self.critic.get_weights()
         tgt_critic_weights = self.tgt_critic.get_weights()
         actor_weights = self.actor.get_weights()
@@ -86,3 +99,9 @@ class DDPGAgent(Agent):
 
     def new_episode(self):
         self.process.clear()
+        if self.logging:
+            self.logs.append({})
+            if len(self.logs) == 1:
+                self.logs[-1]['episode'] = 1  # Initial episode.
+            else:
+                self.logs[-1]['episode'] = self.logs[-2]['episode'] + 1
